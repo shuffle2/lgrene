@@ -74,11 +74,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\IO.cpp" />
     <ClCompile Include="..\src\IOWin.cpp" />
     <ClCompile Include="..\src\lgrene.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\IO.h" />
+    <ClInclude Include="..\src\IOWin.h" />
+    <ClInclude Include="..\src\Utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
