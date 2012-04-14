@@ -28,8 +28,6 @@ void LGReneDriveBase::ReadBuffer(Region const region, uint32_t const offset, uin
 {
 	cmd.Clear();
 	cmd.data_length = size;
-	cmd.data = new uint8_t[cmd.data_length];
-	std::fill(cmd.data, cmd.data + cmd.data_length, 0);
 	cmd.type = cmd.READ;
 	cmd.descriptor_block[1] = region;
 	cmd.descriptor_block[2] = offset >> 24;
@@ -41,16 +39,13 @@ void LGReneDriveBase::ReadBuffer(Region const region, uint32_t const offset, uin
 	// ???
 	cmd.descriptor_block[9] = 0x44;
 	SendCommand();
-	delete [] cmd.data;
 }
 
 void LGReneDriveBase::Inquiry()
 {
 	cmd.Clear();
 	// The response will include the actual amount read
-	cmd.data_length = 0xfffc;
-	cmd.data = new uint8_t[cmd.data_length];
-	std::fill(cmd.data, cmd.data + cmd.data_length, 0);
+	cmd.data_length = cmd.data_length_max;
 	cmd.type = cmd.INQUIRY;
 	cmd.descriptor_block[3] = cmd.data_length >> 8;
 	cmd.descriptor_block[4] = cmd.data_length & 0xff;
@@ -81,7 +76,6 @@ void LGReneDriveBase::Inquiry()
 	inq.product_revision		= std::string((const char *)&cmd.data[32], 4);
 	std::copy_n(&cmd.data[36], sizeof(inq.drive_serial), inq.drive_serial);
 	std::copy_n(&cmd.data[44], sizeof(inq.vendor_unique), inq.vendor_unique);
-	delete [] cmd.data;
 
 	if (inq.peripheral_device_type == inq.DEVTYPE_MMC4)
 	{
@@ -115,5 +109,7 @@ void LGReneDriveBase::Dump(std::string const &out_file)
 	// See if it's valid / show pretty info
 	Inquiry();
 	
-	//...
+	// read stuff to show it works
+	ReadBuffer(REGION_MEMORY, 0, 0x8000);
+	hexdump_n(cmd.data, cmd.data_length);
 }

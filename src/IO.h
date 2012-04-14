@@ -2,6 +2,7 @@
 
 #include <string>
 #include <cstdint>
+#include "Utils.h"
 
 struct LGReneDriveBase
 {
@@ -52,16 +53,27 @@ struct LGReneDriveBase
 		// TODO on windows this may need to be aligned. Care if/when it matters
 		uint8_t *data;
 		uint32_t data_length;
+		// < 0xffff and multiple of 2
+		static uint32_t const data_length_max = 0xffff & ~1;
 		uint8_t sense_info[24];
 
 		Command()
 		{
-			Clear();
+			data = new uint8_t[data_length_max];
+		}
+
+		~Command()
+		{
+			delete [] data;
 		}
 		
 		void Clear()
 		{
-			memset(this, 0, sizeof(*this));
+			memzero(descriptor_block);
+			descriptor_length = 0;
+			memzero_n(data, data_length_max);
+			data_length = 0;
+			memzero(sense_info);
 		}
 
 		uint8_t const GetCommand(TypeInfo const ti) const
@@ -128,11 +140,6 @@ struct LGReneDriveBase
 		std::string product_revision;
 		uint8_t drive_serial[8];
 		uint8_t vendor_unique[12];
-
-		InquiryResponse()
-		{
-			memset(this, 0, sizeof(*this));
-		}
 	};
 
 	LGReneDriveBase(std::string const &drive);

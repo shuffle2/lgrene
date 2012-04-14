@@ -2,15 +2,14 @@
 
 #include <string>
 #include <iostream>
+#include <iomanip>
 
 template<typename T, int N>
 inline void print_hex_and_ascii(std::string const &name, T (&data) [N])
 {
 	auto print_hex_byte = [](uint32_t const &b)
 	{
-		std::cout.width(2);
-		std::cout.fill('0');
-		std::cout << std::hex << b;
+		std::cout << std::setw(2) << std::setfill('0') << std::hex << b;
 	};
 	auto print_iff_ascii = [](char const &b)
 	{
@@ -22,7 +21,38 @@ inline void print_hex_and_ascii(std::string const &name, T (&data) [N])
 	std::cout << " (0x";
 	std::for_each(std::begin(data), std::end(data), print_hex_byte);
 	std::cout << ")" << std::endl;
-};
+}
+
+template<typename T>
+inline void hexdump_n(T const &x, size_t const n)
+{
+	int const bytes_per_row = 16;
+	int total = n, addr_width = 1;
+	while (total >>= 8)
+		addr_width++;
+	addr_width *= 2;
+
+	std::cout << std::setfill('0') << std::hex;
+	for (size_t offset = 0; offset < n;)
+	{
+		std::cout << std::setw(addr_width) << offset << " ";
+		for (int i = 0; i < bytes_per_row && offset < n; ++i, ++offset)
+			std::cout << std::setw(2) << (uint32_t const)x[offset] << " ";
+		std::cout << std::endl;
+	}
+}
+
+template<typename T>
+inline void memzero(T &x)
+{
+	std::fill(std::begin(x), std::end(x), 0);
+}
+
+template<typename T>
+inline void memzero_n(T &x, size_t const n)
+{
+	std::fill(x, x + n, 0);
+}
 
 #if defined(_MSC_VER)
 

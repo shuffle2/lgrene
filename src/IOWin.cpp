@@ -57,7 +57,7 @@ void LGReneDrive::SendCommand()
 	std::copy(cmd.descriptor_block, cmd.descriptor_block + cmd.descriptor_length, sptd->Cdb);
 	sptd->CdbLength = cmd.descriptor_length;
 	
-	sptd->SenseInfoOffset = sizeof(*sptd);
+	sptd->SenseInfoOffset = sptd->Length;
 	sptd->SenseInfoLength = sizeof(cmd.sense_info);
 
 	sptd->DataTransferLength = cmd.data_length;
@@ -78,8 +78,6 @@ void LGReneDrive::SendCommand()
 		NULL
 		);
 
-	std::cout << "ioctl returned " <<
-		((ioctl_result == TRUE) ? "true" : "false") << std::endl;
 	if (ioctl_result == FALSE)
 		std::cout << "error: " << GetLastError() << std::endl;
 
