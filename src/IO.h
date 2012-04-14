@@ -49,6 +49,7 @@ struct LGReneDriveBase
 		TypeInfo type;
 		uint8_t descriptor_block[16];
 		uint8_t descriptor_length;
+		// TODO on windows this may need to be aligned. Care if/when it matters
 		uint8_t *data;
 		uint32_t data_length;
 		uint8_t sense_info[24];
@@ -93,9 +94,9 @@ struct LGReneDriveBase
 		}
 	};
 
+	// Standard Inquiry
 	struct InquiryResponse
 	{
-		// Standard Inquiry
 		enum
 		{
 			DEVTYPE_MMC4 = 5
@@ -122,10 +123,9 @@ struct LGReneDriveBase
 		bool medium_changer;
 		bool linked_command;
 		bool command_queuing;
-		// An extra byte is added for null termination
-		char vendor_id[8 + 1];
-		char product_id[16 + 1];
-		char product_revision[4 + 1];
+		std::string vendor_id;
+		std::string product_id;
+		std::string product_revision;
 		uint8_t drive_serial[8];
 		uint8_t vendor_unique[12];
 
@@ -141,7 +141,7 @@ struct LGReneDriveBase
 	virtual void SendCommand() = 0;
 	void Stop();
 	void Eject();
-	void ReadBuffer(Region const region, uint32_t const offset);
+	void ReadBuffer(Region const region, uint32_t const offset, uint16_t const size);
 	void Inquiry();
 
 	std::string drive_path;

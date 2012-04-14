@@ -24,12 +24,12 @@ void LGReneDriveBase::Eject()
 	SendCommand();
 }
 
-void LGReneDriveBase::ReadBuffer(Region const region, uint32_t const offset)
+void LGReneDriveBase::ReadBuffer(Region const region, uint32_t const offset, uint16_t const size)
 {
 	cmd.Clear();
-	cmd.data_length = 0xfffc;
+	cmd.data_length = size;
 	cmd.data = new uint8_t[cmd.data_length];
-	std::fill_n(cmd.data, cmd.data_length, 0);
+	std::fill(cmd.data, cmd.data + cmd.data_length, 0);
 	cmd.type = cmd.READ;
 	cmd.descriptor_block[1] = region;
 	cmd.descriptor_block[2] = offset >> 24;
@@ -50,7 +50,7 @@ void LGReneDriveBase::Inquiry()
 	// The response will include the actual amount read
 	cmd.data_length = 0xfffc;
 	cmd.data = new uint8_t[cmd.data_length];
-	std::fill_n(cmd.data, cmd.data_length, 0);
+	std::fill(cmd.data, cmd.data + cmd.data_length, 0);
 	cmd.type = cmd.INQUIRY;
 	cmd.descriptor_block[3] = cmd.data_length >> 8;
 	cmd.descriptor_block[4] = cmd.data_length & 0xff;
@@ -76,9 +76,9 @@ void LGReneDriveBase::Inquiry()
 	inq.medium_changer			= (cmd.data[6] >> 3) & 1;
 	inq.linked_command			= (cmd.data[7] >> 3) & 1;
 	inq.command_queuing			= cmd.data[7] & 1;
-	std::copy_n(&cmd.data[8], sizeof(inq.vendor_id) - 1, inq.vendor_id);
-	std::copy_n(&cmd.data[16], sizeof(inq.product_id) - 1, inq.product_id);
-	std::copy_n(&cmd.data[32], sizeof(inq.product_revision) - 1, inq.product_revision);
+	inq.vendor_id				= std::string((const char *)&cmd.data[8], 8);
+	inq.product_id				= std::string((const char *)&cmd.data[16], 16);
+	inq.product_revision		= std::string((const char *)&cmd.data[32], 4);
 	std::copy_n(&cmd.data[36], sizeof(inq.drive_serial), inq.drive_serial);
 	std::copy_n(&cmd.data[44], sizeof(inq.vendor_unique), inq.vendor_unique);
 	delete [] cmd.data;
@@ -108,7 +108,12 @@ void LGReneDriveBase::Inquiry()
 void LGReneDriveBase::Dump(std::string const &out_file)
 {
 	std::cout << "dumping " << drive_path << " to " << out_file << std::endl;
+	
+	// Poke the drive to wake it up
 	Stop();
+
+	// See if it's valid / show pretty info
 	Inquiry();
+	
 	//...
 }
