@@ -101,9 +101,7 @@ void LGReneDriveBase::Inquiry()
 }
 
 void LGReneDriveBase::Dump(std::string const &out_file)
-{
-	std::cout << "dumping " << drive_path << " to " << out_file << std::endl;
-	
+{	
 	// Poke the drive to wake it up
 	Stop();
 
@@ -115,13 +113,19 @@ void LGReneDriveBase::Dump(std::string const &out_file)
 	std::cout << "here's some mem @ 0x400000\n";
 	hexdump_n(cmd.data, 0x800);
 
+	std::cout << "dumping " << drive_path << " to " << out_file << std::endl;
+
 	std::ofstream output_file(out_file, std::ios::binary);
 	uint32_t const increment = cmd.data_length_max;
 	// have to hard reset drive after reading a bit above 0x04e00000 :'(
 	for (uint32_t offset = 0; offset + increment < 0x04e00000; offset += increment)
 	{
+		std::cout << std::fixed << std::setprecision(2) <<
+			'\r' << offset / (double)0x04e00000 * 100. << "% " <<
+			'(' << std::showbase << std::hex << offset << ')';
 		ReadBuffer(REGION_MEMORY, offset, increment);
 		output_file.write((char const *const)cmd.data, cmd.data_length);
 	}
+	std::cout << std::endl;
 	output_file.close();
 }
