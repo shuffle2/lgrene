@@ -112,7 +112,8 @@ void LGReneDriveBase::Dump(std::string const &out_file)
 	
 	// read stuff to show it works
 	ReadBuffer(REGION_MEMORY, 0x400000, cmd.data_length_max);
-	hexdump_n(cmd.data, cmd.data_length);
+	std::cout << "here's some mem @ 0x400000\n";
+	hexdump_n(cmd.data, 0x800);
 
 	std::ofstream output_file(out_file, std::ios::binary);
 	uint32_t const increment = cmd.data_length_max;
