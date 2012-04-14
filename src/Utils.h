@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <sstream>
 #include <iostream>
 #include <iomanip>
 
@@ -13,32 +14,38 @@ inline void print_hex_and_ascii(std::string const &name, T (&data) [N])
 	};
 	auto print_iff_ascii = [](char const &b)
 	{
-		if (b >= ' ' && b <= '~')
+		if (isalnum(b))
 			std::cout << b;
 	};
 	std::cout << name << ": ";
 	std::for_each(std::begin(data), std::end(data), print_iff_ascii);
 	std::cout << " (0x";
 	std::for_each(std::begin(data), std::end(data), print_hex_byte);
-	std::cout << ")" << std::endl;
+	std::cout << ')' << std::endl;
 }
 
 template<typename T>
 inline void hexdump_n(T const &x, size_t const n)
 {
-	int const bytes_per_row = 16;
-	int total = n, addr_width = 1;
+	size_t const bytes_per_row = 16;
+	size_t total = n, addr_width = 1;
 	while (total >>= 8)
 		addr_width++;
 	addr_width *= 2;
 
-	std::cout << std::setfill('0') << std::hex;
 	for (size_t offset = 0; offset < n;)
 	{
-		std::cout << std::setw(addr_width) << offset << " ";
+		std::stringstream ascii;
+
+		std::cout << std::setfill('0') << std::hex <<
+			std::setw(addr_width) << offset << ' ';
+
 		for (int i = 0; i < bytes_per_row && offset < n; ++i, ++offset)
-			std::cout << std::setw(2) << (uint32_t const)x[offset] << " ";
-		std::cout << std::endl;
+		{
+			std::cout << std::setw(2) << (uint32_t const)x[offset] << ' ';
+			ascii << (char)(isalnum(x[offset]) ? x[offset] : '.');
+		}
+		std::cout << ascii.str() << std::endl;
 	}
 }
 

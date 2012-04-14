@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <algorithm>
 #include "IO.h"
 #include "Utils.h"
@@ -31,9 +32,9 @@ void LGReneDriveBase::ReadBuffer(Region const region, uint32_t const offset, uin
 	cmd.type = cmd.READ;
 	cmd.descriptor_block[1] = region;
 	cmd.descriptor_block[2] = offset >> 24;
-	cmd.descriptor_block[2] = (offset >> 16) & 0xff;
-	cmd.descriptor_block[2] = (offset >> 8) & 0xff;
-	cmd.descriptor_block[2] = offset & 0xff;
+	cmd.descriptor_block[3] = (offset >> 16) & 0xff;
+	cmd.descriptor_block[4] = (offset >> 8) & 0xff;
+	cmd.descriptor_block[5] = offset & 0xff;
 	cmd.descriptor_block[7] = cmd.data_length >> 8;
 	cmd.descriptor_block[8] = cmd.data_length & 0xff;
 	// ???
@@ -110,6 +111,16 @@ void LGReneDriveBase::Dump(std::string const &out_file)
 	Inquiry();
 	
 	// read stuff to show it works
-	ReadBuffer(REGION_MEMORY, 0, 0x8000);
+	ReadBuffer(REGION_MEMORY, 0x400000, cmd.data_length_max);
 	hexdump_n(cmd.data, cmd.data_length);
+
+	std::ofstream output_file(out_file, std::ios::binary);
+	uint32_t const increment = cmd.data_length_max;
+	// have to hard reset drive after reading a bit above 0x04e00000 :'(
+	for (uint32_t offset = 0; offset + increment < 0x04e00000; offset += increment)
+	{
+		ReadBuffer(REGION_MEMORY, offset, increment);
+		output_file.write((char const *const)cmd.data, cmd.data_length);
+	}
+	output_file.close();
 }

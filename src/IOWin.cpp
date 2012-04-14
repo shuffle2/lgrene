@@ -79,7 +79,7 @@ void LGReneDrive::SendCommand()
 		);
 
 	if (ioctl_result == FALSE)
-		std::cout << "error: " << GetLastError() << std::endl;
+		std::cout << "ioctl error: " << GetLastError() << std::endl;
 
 	// Clean up
 	delete sptd;
